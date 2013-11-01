@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?eclipse version="3.0"?>
+
+<plugin>
+     <extension point="org.knime.workbench.repository.nodes">
+        <node
+              category-path="/kniplarva"
+              expert-flag="false"
+              factory-class="org.knime.knip.larva.LarvaFeatureSetNodeFactory"
+              id="org.knime.knip.larva.LarvaFeatureSet">
+        </node>
+        <node
+              category-path="/kniplarva"
+              expert-flag="false"
+              factory-class="org.knime.knip.larva.node.larvahead.LarvaHeadNodeFactory"
+              id="org.knime.knip.larva.LarvaHead">
+        </node>
+        <node
+              category-path="/kniplarva"
+              expert-flag="false"
+              factory-class="org.knime.knip.larva.node.larvafeatures.LarvaFeaturesNodeFactory"
+              id="org.knime.knip.larva.LarvaFeatures">
+        </node>
+        <node
+              category-path="/kniplarva"
+              expert-flag="false"
+              factory-class="org.knime.knip.larva.node.viewer.LarvaViewerNodeFactory"
+              id="org.knime.knip.larva.node.viewer.LarvaViewerNodeFactory">
+        </node>
+</extension>
+     <extension point="org.knime.workbench.repository.categories">
+        <category
+              level-id="kniplarva"
+              name="KNIP Larva Nodes"
+              path="/">
+        </category>
+     </extension>
+     <extension
+           point="org.knime.workbench.repository.nodesets">
+        <nodeset
+              expert-flag="false"
+              factory-class="org.knime.knip.larva.LarvaNodeSetFactory"
+              id="org.knime.knip.larva.LarvaNodeSetFactory">
+        </nodeset>
+     </extension>
+     <extension
+           point="org.knime.base.AggregationOperator">
+        <AggregationOperator
+              AggregationOperator="org.knime.knip.larva.LarvaGridOperator"
+              deprecated="false">
+        </AggregationOperator>
+     </extension>
+</plugin>

@@ -1,0 +1,20 @@
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="icons/threshold.png" type="Manipulator">
+	<name>LarvaHead</name>
+	<shortDescription>
+		Determines the head of two larva ends
+	</shortDescription>
+
+	<fullDescription>
+		<intro>Determines the head of two larva ends. Additionally the table can be sorted by time and rows containing equal time information can be merged</intro>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="LarvaEndPoints">
+			The points of the two larva ends (x-value, y-value), centroid, center, time
+		</inPort>
+		<outPort index="0" name="LarvaHeadAndEnd">
+			Larva head and larva end (x-value, y-value)
+		</outPort>
+	</ports>
+</knimeNode>

@@ -1,0 +1,20 @@
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="icons/threshold.png" type="Manipulator">
+	<name>LarvaFeatures</name>
+	<shortDescription>
+		Calculates features describing movement, posture and orientation of a larva.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>Calculates features describing movement, posture and orientation of a larva.</intro>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="LarvaPoints">
+			The points of the larva (head, tail, centroid, center) and the time information
+		</inPort>
+		<outPort index="0" name="LarvaFeatures">
+			Larva features
+		</outPort>
+	</ports>
+</knimeNode>
