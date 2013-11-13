@@ -83,9 +83,9 @@ public class LarvaViewerNodeDialog extends DefaultNodeSettingsPane {
 		addDialogComponent(new DialogComponentNumber(
 				new SettingsModelIntegerBounded("headcast_angle_start", 25, 1,
 						179), "Threshold for head cast angle", 1));
-//		addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
-//				"detect_headcasts_while_running_selection", false),
-//				"Detect headcasts while running"));
+		addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
+				"detect_headcasts_while_running_selection", false),
+				"Detect headcasts while running"));
 
 		createNewTab("Column Selection");
 		addDialogComponent(new DialogComponentColumnNameSelection(
