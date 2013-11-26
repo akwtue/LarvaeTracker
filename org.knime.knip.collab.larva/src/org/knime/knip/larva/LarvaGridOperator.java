@@ -3,8 +3,8 @@ package org.knime.knip.larva;
 import java.io.IOException;
 
 import net.imglib2.Cursor;
+import net.imglib2.img.ImgPlus;
 import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.meta.ImgPlus;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 
