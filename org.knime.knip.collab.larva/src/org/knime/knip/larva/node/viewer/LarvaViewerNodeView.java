@@ -77,9 +77,11 @@ import net.imglib2.img.Img;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingMapping;
 import net.imglib2.labeling.LabelingType;
+import net.imglib2.labeling.LabelingView;
 import net.imglib2.labeling.NativeImgLabeling;
-import net.imglib2.meta.Metadata;
-import net.imglib2.ops.operation.subset.views.LabelingView;
+import net.imglib2.meta.ImageMetadata;
+import net.imglib2.meta.ImgPlusMetadata;
+import net.imglib2.meta.MetadataUtil;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.ByteType;
@@ -97,7 +99,11 @@ import org.knime.core.node.tableview.TableView;
 import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingValue;
 import org.knime.knip.base.nodes.view.segmentoverlay.LabelHiliteProvider;
-import org.knime.knip.core.data.img.ImgMetadataImpl;
+import org.knime.knip.core.awt.labelingcolortable.DefaultLabelingColorTable;
+import org.knime.knip.core.data.img.DefaultImageMetadata;
+import org.knime.knip.core.data.img.DefaultImgMetadata;
+import org.knime.knip.core.data.img.DefaultLabelingMetadata;
+import org.knime.knip.core.data.img.LabelingMetadata;
 import org.knime.knip.core.ui.event.EventListener;
 import org.knime.knip.core.ui.event.EventService;
 import org.knime.knip.core.ui.imgviewer.ImgCanvas;
@@ -106,10 +112,14 @@ import org.knime.knip.core.ui.imgviewer.ViewerComponents;
 import org.knime.knip.core.ui.imgviewer.events.ImgAndLabelingChgEvent;
 import org.knime.knip.core.ui.imgviewer.events.ImgRedrawEvent;
 import org.knime.knip.core.ui.imgviewer.events.IntervalWithMetadataChgEvent;
+import org.knime.knip.core.ui.imgviewer.events.LabelingWithMetadataChgEvent;
 import org.knime.knip.core.ui.imgviewer.events.PlaneSelectionEvent;
 import org.knime.knip.core.ui.imgviewer.events.ViewClosedEvent;
 import org.knime.knip.core.ui.imgviewer.panels.infobars.ImgLabelingViewInfoPanel;
-import org.knime.knip.core.ui.imgviewer.panels.providers.BufferedImageLabelingOverlayProvider;
+import org.knime.knip.core.ui.imgviewer.panels.providers.AWTImageProvider;
+import org.knime.knip.core.ui.imgviewer.panels.providers.CombinedRU;
+import org.knime.knip.core.ui.imgviewer.panels.providers.ImageRU;
+import org.knime.knip.core.ui.imgviewer.panels.providers.LabelingRU;
 import org.knime.knip.core.util.MiscViews;
 import org.knime.knip.larva.node.viewer.LarvaViewerNodeModel.LabelTransformVariables;
 
@@ -140,8 +150,8 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 	private LabelHiliteProvider<L, T> m_hiliteProvider;
 
 	/* Image cell view pane */
-	private ImgViewer<T, Img<T>> m_imgView;
-	
+	private ImgViewer m_imgView;
+
 	private TIntervalSelectionPanel m_tIntervalSelectionPanel = new TIntervalSelectionPanel();
 
 	/* Current row */
@@ -190,19 +200,21 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 			});
 
 	/**
-	 * Constructor. Initializes all the components of the Interactive Larva View.
+	 * Constructor. Initializes all the components of the Interactive Larva
+	 * View.
 	 * 
-	 * @param model the node model of this node
+	 * @param model
+	 *            the node model of this node
 	 */
 	public LarvaViewerNodeView(final LarvaViewerNodeModel<T, L> model) {
 		super(model);
-		
+
 		m_showPlot1Config = true;
 		m_showPlot2Config = true;
 
 		m_sp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		m_sp.setPreferredSize(new Dimension(1500, 900));
-		
+
 		m_row = -1;
 		m_tableContentView = new TableContentView();
 		m_tableContentView.getSelectionModel().setSelectionMode(
@@ -212,12 +224,11 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 				.addListSelectionListener(this);
 		m_tableView = new TableView(m_tableContentView);
 
-		m_imgView = new ImgViewer<T, Img<T>>();
+		m_imgView = new ImgViewer();
 		m_eventService = m_imgView.getEventService();
 		m_eventService.subscribe(this);
-		m_imgView
-				.addViewerComponent(new BufferedImageLabelingOverlayProvider<T, L>(
-						20));
+		m_imgView.addViewerComponent(new AWTImageProvider(20, new CombinedRU(
+				new ImageRU<T>(true), new LabelingRU<L>())));
 		m_imgView.addViewerComponent(new ImgLabelingViewInfoPanel<T, L>());
 		m_imgView.addViewerComponent(new ImgCanvas<T, Img<T>>());
 		m_imgView.addViewerComponent(ViewerComponents.MINIMAP.createInstance());
@@ -244,8 +255,8 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 		}
 
 		m_larvaDoubleLinePlotPanel = new JPanel();
-		m_larvaDoubleLinePlotPanel.setLayout(new BoxLayout(m_larvaDoubleLinePlotPanel,
-				BoxLayout.Y_AXIS));
+		m_larvaDoubleLinePlotPanel.setLayout(new BoxLayout(
+				m_larvaDoubleLinePlotPanel, BoxLayout.Y_AXIS));
 		// add Line Plotter to Viewer
 		m_linePlot1 = new LarvaLinePlotter(m_eventService, 1);
 		m_linePlot1.setDataProvider((DataProvider) model);
@@ -269,19 +280,21 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 		m_linePlot4.setDataProvider((DataProvider) model);
 		m_linePlot4.setHiLiteHandler(model.getInHiLiteHandler(1));
 		m_linePlot4.updatePaintModel();
-		
-//		m_larvaLinePlotTabs = new JTabbedPane();
-//		m_larvaLinePlotTabs.addTab("Two Line Plots", m_larvaDoubleLinePlotPanel);
-//		m_larvaLinePlotTabs.addTab("Line Plot: Angle", m_linePlot3);
-//		m_larvaLinePlotTabs.addTab("Line Plot: Speed", m_linePlot4);
 
-		m_larvaInfoPanel = new LarvaInfoPanel(m_eventService, model.getMinRunSpeed(), model.getHeadCastAngleThreshold());
+		// m_larvaLinePlotTabs = new JTabbedPane();
+		// m_larvaLinePlotTabs.addTab("Two Line Plots",
+		// m_larvaDoubleLinePlotPanel);
+		// m_larvaLinePlotTabs.addTab("Line Plot: Angle", m_linePlot3);
+		// m_larvaLinePlotTabs.addTab("Line Plot: Speed", m_linePlot4);
+
+		m_larvaInfoPanel = new LarvaInfoPanel(m_eventService,
+				model.getMinRunSpeed(), model.getHeadCastAngleThreshold());
 		JPanel rightPanel = new JPanel();
 		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-		
-//		rightPanel.add(m_larvaLinePlotTabs);
+
+		// rightPanel.add(m_larvaLinePlotTabs);
 		rightPanel.add(m_larvaDoubleLinePlotPanel);
-		
+
 		rightPanel.add(m_larvaInfoPanel);
 
 		m_sp.add(rightPanel);
@@ -293,9 +306,11 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 	}
 
 	/**
-	 * Listens to the resize plots event and fits the line plots to the current visible area.
+	 * Listens to the resize plots event and fits the line plots to the current
+	 * visible area.
 	 * 
-	 * @param e the resize plots event
+	 * @param e
+	 *            the resize plots event
 	 */
 	@EventListener
 	public void onResizePlotsClicked(ResizePlotsEvent e) {
@@ -303,14 +318,16 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 		if (m_linePlot2.isVisible()) {
 			m_linePlot2.fitToScreen();
 		}
-//		m_linePlot3.fitToScreen();
-//		m_linePlot4.fitToScreen();
+		// m_linePlot3.fitToScreen();
+		// m_linePlot4.fitToScreen();
 	}
 
 	/**
-	 * Listens to changes of the visibility of the second line plot and passes it to the plot.
+	 * Listens to changes of the visibility of the second line plot and passes
+	 * it to the plot.
 	 * 
-	 * @param e the show/hide second line plot event
+	 * @param e
+	 *            the show/hide second line plot event
 	 */
 	@EventListener
 	public void onShowHideSecondLinePlotClicked(ShowHideSecondLinePlotEvent e) {
@@ -325,9 +342,11 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 	}
 
 	/**
-	 * Listens to changes of the visibility of the config and passes it to the plot.
+	 * Listens to changes of the visibility of the config and passes it to the
+	 * plot.
 	 * 
-	 * @param e the show/hide config event
+	 * @param e
+	 *            the show/hide config event
 	 */
 	@EventListener
 	public void onShowHideConfigClicked(ShowHideConfigEvent e) {
@@ -350,9 +369,11 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 	}
 
 	/**
-	 * Listens to changes of the plane selection (selection of the t-value) and publishes the t-value selection event
+	 * Listens to changes of the plane selection (selection of the t-value) and
+	 * publishes the t-value selection event
 	 * 
-	 * @param e the plane selection event
+	 * @param e
+	 *            the plane selection event
 	 */
 	@EventListener
 	public void onPlaneSelectionChanged(final PlaneSelectionEvent e) {
@@ -369,9 +390,11 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 	}
 
 	/**
-	 * Listens to changes of the table selection and forces all components to update their paint models and selections.
+	 * Listens to changes of the table selection and forces all components to
+	 * update their paint models and selections.
 	 * 
-	 * @param e the image and labling changed event
+	 * @param e
+	 *            the image and labling changed event
 	 */
 	@EventListener
 	public void onTableSelectionChanged(ImgAndLabelingChgEvent<?, ?> e) {
@@ -381,28 +404,30 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 		e.getRandomAccessibleInterval().dimensions(dims);
 		long numRows = dims[dims.length - 1];
 		m_tIntervalSelectionPanel.updatePaintModel(numRows);
-		m_larvaInfoPanel.setFeaturesTable(getNodeModel().getLarvaFeaturesTable(), getNodeModel().getColIndxSet(), getNodeModel().getExec());
-		m_eventService.publish(new TIntervalSelectionEvent(1,
-				numRows));
-		
-		ColorLegendTab colorLegend = ((LinePlotterProperties) m_linePlot2.getProperties()).getColorLegend();
+		m_larvaInfoPanel.setFeaturesTable(getNodeModel()
+				.getLarvaFeaturesTable(), getNodeModel().getColIndxSet(),
+				getNodeModel().getExec());
+		m_eventService.publish(new TIntervalSelectionEvent(1, numRows));
+
+		ColorLegendTab colorLegend = ((LinePlotterProperties) m_linePlot2
+				.getProperties()).getColorLegend();
 		Map<String, Color> mapping = colorLegend.getColorMapping();
 		Set<String> keySet = mapping.keySet();
 
 		Map<String, Color> newMapping = new LinkedHashMap<String, Color>();
-//        mapping.clear();
+		// mapping.clear();
 		int numEntries = keySet.size();
-        float segment = 360f / (numEntries);
-        int keyNumber = 0;
-        for (String i : keySet) {
-            // if new columns are added
-//            String key = colSpec.getName();
-            float h = ((keyNumber * segment + 40) / 360f);
-            Color c = Color.getHSBColor(h, 1, 1);
-            newMapping.put(i, c);
-            keyNumber++;
-        }
-        colorLegend.update(newMapping);
+		float segment = 360f / (numEntries);
+		int keyNumber = 0;
+		for (String i : keySet) {
+			// if new columns are added
+			// String key = colSpec.getName();
+			float h = ((keyNumber * segment + 40) / 360f);
+			Color c = Color.getHSBColor(h, 1, 1);
+			newMapping.put(i, c);
+			keyNumber++;
+		}
+		colorLegend.update(newMapping);
 	}
 
 	private void loadPortContent() {
@@ -485,7 +510,7 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 
 		try {
 			RandomAccessibleInterval<T> img;
-			Metadata metadata;
+			ImgPlusMetadata metadata;
 			Labeling<L> lab;
 			DataCell currentLabelingCell;
 
@@ -524,9 +549,13 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 				img = MiscViews
 						.constant(max, new FinalInterval(labMin, labMax));
 
-				metadata = new ImgMetadataImpl(
-						((LabelingValue<L>) currentLabelingCell)
-								.getLabelingMetadata());
+				metadata = new DefaultImgMetadata(lab.numDimensions());
+				// TODO review this code
+				LabelingMetadata oldMetdata = ((LabelingValue<L>) currentLabelingCell)
+						.getLabelingMetadata();
+				MetadataUtil.copySource(oldMetdata, metadata);
+				MetadataUtil.copyName(oldMetdata, metadata);
+				MetadataUtil.copyTypedSpace(oldMetdata, metadata);
 
 			}
 
@@ -584,13 +613,13 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 								.getLabelingMetadata(), img, metadata),
 						lab.<L> factory());
 			}
-			m_imgView.getEventService()
-					.publish(
-							new IntervalWithMetadataChgEvent<LabelingType<L>>(
-									lab,
-									((LabelingValue<L>) currentLabelingCell)
-											.getLabelingMetadata(), metadata,
-									metadata));
+
+			LabelingMetadata meta = ((LabelingValue<L>) currentLabelingCell)
+					.getLabelingMetadata();
+			m_imgView.getEventService().publish(
+					new LabelingWithMetadataChgEvent<L>(lab,
+							new DefaultLabelingMetadata(metadata, metadata,
+									meta, new DefaultLabelingColorTable())));
 
 			m_imgView.getEventService()
 					.publish(
@@ -604,5 +633,4 @@ public class LarvaViewerNodeView<T extends RealType<T>, L extends Comparable<L>,
 		}
 
 	}
-
 }

@@ -92,11 +92,12 @@ import org.knime.knip.base.data.img.ImgPlusCell;
 import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.base.data.labeling.LabelingValue;
-import org.knime.knip.base.node.NodeTools;
+import org.knime.knip.base.node.NodeUtils;
 import org.knime.knip.core.util.StringTransformer;
 
 /**
- * Node model for the node Larva Viewer. It extends the model for the Segment Overlay Node.
+ * Node model for the node Larva Viewer. It extends the model for the Segment
+ * Overlay Node.
  * 
  * @author dietzc, hornm, schoenenbergerf, wildnerm
  */
@@ -171,13 +172,13 @@ public class LarvaViewerNodeModel<T extends RealType<T>, L extends Comparable<L>
 			"headCastNumber" };
 
 	/*
-	 * stores the positions of needed columns. order of column positions:
-	 * Time, theta (head angle)
+	 * stores the positions of needed columns. order of column positions: Time,
+	 * theta (head angle)
 	 */
 	private int[] m_colPos;
-	
+
 	private ExecutionContext m_exec;
-	
+
 	private int[] m_includedColumns;
 	private int[] m_includedColumnsPlot1 = new int[] { 1, 2, 6 };
 	private int[] m_includedColumnsPlot2 = new int[] { 5, 6 };
@@ -240,10 +241,10 @@ public class LarvaViewerNodeModel<T extends RealType<T>, L extends Comparable<L>
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
 			throws InvalidSettingsException {
 
-		NodeTools.autoColumnSelection(inSpecs[0], m_labelingCol,
+		NodeUtils.autoColumnSelection(inSpecs[0], m_labelingCol,
 				LabelingValue.class, this.getClass());
 
-		NodeTools.autoOptionalColumnSelection(inSpecs[0], m_imgCol,
+		NodeUtils.autoOptionalColumnSelection(inSpecs[0], m_imgCol,
 				ImgPlusValue.class);
 
 		DataTableSpec outspec = createOutSpec(inSpecs[1]);
@@ -251,14 +252,15 @@ public class LarvaViewerNodeModel<T extends RealType<T>, L extends Comparable<L>
 	}
 
 	/**
-	 * Executes the node. New features are computed and stored in the data table.
+	 * Executes the node. New features are computed and stored in the data
+	 * table.
 	 */
 	@Override
 	protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
 			final ExecutionContext exec) throws Exception {
 
 		m_exec = exec;
-		
+
 		assert (inData != null);
 		assert (inData.length >= 1);
 
@@ -593,11 +595,11 @@ public class LarvaViewerNodeModel<T extends RealType<T>, L extends Comparable<L>
 			m_larvaFeaturesTable = tables[1];
 			// providing data for lineplotter
 			// setIncludedColumns();
-//			m_includedColumns = new int[] { 1, 2, 3, 4, 5 };
-//			DataTable linePlotterFeatureTable = new FilterColumnTable(
-//					tables[1], getIncludedColumns());
-//			m_inFeatures = new DefaultDataArray(linePlotterFeatureTable, 1,
-//					tables[1].getRowCount());
+			// m_includedColumns = new int[] { 1, 2, 3, 4, 5 };
+			// DataTable linePlotterFeatureTable = new FilterColumnTable(
+			// tables[1], getIncludedColumns());
+			// m_inFeatures = new DefaultDataArray(linePlotterFeatureTable, 1,
+			// tables[1].getRowCount());
 		}
 
 		// HiLiteHandler inProp = getInHiLiteHandler(INPORT);
@@ -631,16 +633,18 @@ public class LarvaViewerNodeModel<T extends RealType<T>, L extends Comparable<L>
 	}
 
 	/**
-	 * Provides the data array for the line plots. The array depends on the ID of the line plot
+	 * Provides the data array for the line plots. The array depends on the ID
+	 * of the line plot
 	 * 
-	 * @param numberOfPlot the ID of the line plot
+	 * @param numberOfPlot
+	 *            the ID of the line plot
 	 */
 	@Override
 	public DataArray getDataArray(int numberOfPlot) {
 		if (getInternalTables().length > 1) {
-		return new DefaultDataArray(new FilterColumnTable(
-				m_larvaFeaturesTable, getIncludedColumns(numberOfPlot)), 1,
-				m_larvaFeaturesTable.getRowCount());
+			return new DefaultDataArray(new FilterColumnTable(
+					m_larvaFeaturesTable, getIncludedColumns(numberOfPlot)), 1,
+					m_larvaFeaturesTable.getRowCount());
 		}
 		return null;
 	};
@@ -648,7 +652,8 @@ public class LarvaViewerNodeModel<T extends RealType<T>, L extends Comparable<L>
 	/**
 	 * Provides the included columns of each line plot.
 	 * 
-	 * @param numberOfPlot ID of the line plot
+	 * @param numberOfPlot
+	 *            ID of the line plot
 	 * @return the included columns
 	 */
 	private int[] getIncludedColumns(int numberOfPlot) {
@@ -668,38 +673,43 @@ public class LarvaViewerNodeModel<T extends RealType<T>, L extends Comparable<L>
 
 	/**
 	 * Gets the incoming data table of the node.
+	 * 
 	 * @return incoming data table
 	 */
 	public BufferedDataTable getLarvaFeaturesTable() {
 		return m_larvaFeaturesTable;
 	}
-	
+
 	/**
 	 * Gets the positions of interesting columns.
+	 * 
 	 * @return the column positions
 	 */
 	public int[] getColIndxSet() {
 		return m_colPos;
 	}
-	
+
 	/**
 	 * Gets the execution context of this model.
+	 * 
 	 * @return execution context of this model
 	 */
 	public ExecutionContext getExec() {
 		return m_exec;
 	}
-	
+
 	/**
 	 * Gets the minimum run speed.
+	 * 
 	 * @return minimum run speed
 	 */
 	public double getMinRunSpeed() {
 		return m_minRunSpeedSelection.getDoubleValue();
 	}
-	
+
 	/**
 	 * Gets the headcast angle threshold.
+	 * 
 	 * @return headcast angle threshold
 	 */
 	public int getHeadCastAngleThreshold() {

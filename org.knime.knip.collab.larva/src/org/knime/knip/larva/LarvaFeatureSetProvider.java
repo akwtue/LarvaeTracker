@@ -101,4 +101,9 @@ public class LarvaFeatureSetProvider
 	public void initAndAddSettingsModels(List<SettingsModel> settingsModels) {
 		settingsModels.add(m_genFeat = createFeatModel());
 	}
+
+	@Override
+	public String getFeatureSetId() {
+		return "Larva Features";
+	}
 }

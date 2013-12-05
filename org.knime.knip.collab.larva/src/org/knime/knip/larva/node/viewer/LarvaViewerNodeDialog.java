@@ -61,19 +61,20 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingValue;
 import org.knime.knip.base.nodes.seg.labeleditor.DialogComponentStringTransformer;
-import org.knime.knip.core.util.EnumListProvider;
+import org.knime.knip.core.util.EnumUtils;
 import org.knime.knip.larva.node.viewer.LarvaViewerNodeModel.LabelTransformVariables;
 
 /**
- * Dialog for the node Larva Viewer, based on the Dialog for the Segment Overlay Node.
+ * Dialog for the node Larva Viewer, based on the Dialog for the Segment Overlay
+ * Node.
  * 
  * @author dietzc, hornm, schonenbergerf, wildnerm
  */
 public class LarvaViewerNodeDialog extends DefaultNodeSettingsPane {
 
 	/**
-     * Constructor. Initializes all the dialog components.
-     */
+	 * Constructor. Initializes all the dialog components.
+	 */
 	@SuppressWarnings("unchecked")
 	public LarvaViewerNodeDialog() {
 		super();
@@ -83,9 +84,10 @@ public class LarvaViewerNodeDialog extends DefaultNodeSettingsPane {
 		addDialogComponent(new DialogComponentNumber(
 				new SettingsModelIntegerBounded("headcast_angle_start", 25, 1,
 						179), "Threshold for head cast angle", 1));
-//		addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
-//				"detect_headcasts_while_running_selection", false),
-//				"Detect headcasts while running"));
+		// addDialogComponent(new DialogComponentBoolean(new
+		// SettingsModelBoolean(
+		// "detect_headcasts_while_running_selection", false),
+		// "Detect headcasts while running"));
 
 		createNewTab("Column Selection");
 		addDialogComponent(new DialogComponentColumnNameSelection(
@@ -112,9 +114,10 @@ public class LarvaViewerNodeDialog extends DefaultNodeSettingsPane {
 		createNewTab("Label Transformation");
 		final DialogComponentStringTransformer dialogComponentStringTransformer = new DialogComponentStringTransformer(
 				new SettingsModelString(LarvaViewerNodeModel.CFG_EXPRESSION,
-						"$" + LabelTransformVariables.Label + "$"));
-		dialogComponentStringTransformer.setVariables(EnumListProvider
-				.getStringList(LabelTransformVariables.values()));
+						"$" + LabelTransformVariables.Label + "$"), true, 0,
+				"Label",
+				EnumUtils.getStringListFromToString(LabelTransformVariables.values()));
+
 		addDialogComponent(dialogComponentStringTransformer);
 	}
 }
