@@ -27,6 +27,12 @@
               factory-class="org.knime.knip.larva.node.viewer.LarvaViewerNodeFactory"
               id="org.knime.knip.larva.node.viewer.LarvaViewerNodeFactory">
         </node>
+        <node
+              category-path="/kniplarva"
+              expert-flag="false"
+              factory-class="org.knime.knip.larva.node.larvathinning.LarvaThinningNodeFactory"
+              id="org.knime.knip.larva.LarvaThinning">
+        </node>
 </extension>
      <extension point="org.knime.workbench.repository.categories">
         <category
